@@ -1,0 +1,22 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Node
+node_modules/
+
+# Scratch / build fixtures
+/tmp/
+*.log
+
+# Stale git-repo backup left by sandbox (safe to delete on your machine)
+.git.trash*/

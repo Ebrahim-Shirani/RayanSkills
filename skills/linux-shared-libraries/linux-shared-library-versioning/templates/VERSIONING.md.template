@@ -1,0 +1,103 @@
+<!--
+  Template for the versioning documentation this skill emits into a target project
+  (as VERSIONING.md, in the project's docs/ or root).
+
+  Replace every {{PLACEHOLDER}} with the concrete value used in THIS project.
+  Delete guidance comments and any section that does not apply.
+  Keep it factual to what was actually implemented — do not restate general theory.
+-->
+
+# Shared Library Versioning — {{PROJECT_NAME}}
+
+This project versions its shared libraries following standard Linux/ELF conventions
+(VERSION / SOVERSION / SONAME + symlink chain).
+
+## Libraries
+
+| Library | soname (`DT_SONAME`) | Real file |
+|---|---|---|
+| {{LIBNAME}} | `{{LIBNAME}}.so.{{SOVERSION}}` | `{{LIBNAME}}.so.{{VERSION}}` |
+<!-- add one row per shared library the project produces -->
+
+Installed symlink chain:
+
+```
+{{LIBNAME}}.so                  -> {{LIBNAME}}.so.{{SOVERSION}}      (link-time / -dev)
+{{LIBNAME}}.so.{{SOVERSION}}    -> {{LIBNAME}}.so.{{VERSION}}        (runtime == soname)
+{{LIBNAME}}.so.{{VERSION}}                                           (real file)
+```
+
+## Single source of truth
+
+The version is defined in exactly one place:
+
+- **Source:** `{{VERSION_SOURCE_FILE}}` — `{{VERSION_SOURCE_MECHANISM}}`
+  <!-- e.g. "CMakeLists.txt — project(... VERSION 1.4.2)",
+           "meson.build — project(..., version : '1.4.2')",
+           "configure.ac — AC_INIT + EXAMPLE_LT_CURRENT:REVISION:AGE",
+           "Makefile / VERSION file" -->
+
+All other places that need the version are **derived** from it
+({{DERIVED_CONSUMERS}}) — do not introduce a second literal.
+<!-- e.g. "generated version.h, generated example.pc" -->
+
+## What the numbers mean here
+
+- **VERSION = {{VERSION}}** — the full release version of the library binary
+  (`MAJOR.MINOR.PATCH`). Changes on every release. Names the real file.
+- **SOVERSION = {{SOVERSION}}** — the ABI generation. Appears in the soname
+  (`{{LIBNAME}}.so.{{SOVERSION}}`). Changes **only when the ABI breaks**, not every release.
+
+<!-- Autotools projects: also document the libtool axis. Delete if not autotools. -->
+- **libtool `-version-info {{LT_CURRENT}}:{{LT_REVISION}}:{{LT_AGE}}`** — drives the soname as
+  `current − age = {{SOVERSION}}`. This is separate from the release version above.
+
+## Version-numbering policy
+
+<!-- State the project's chosen policy. A common default: -->
+- The release **VERSION** follows {{VERSIONING_SCHEME}} (e.g. Semantic Versioning).
+- **MAJOR** is bumped for incompatible API/ABI changes; **MINOR** for backward-compatible
+  additions; **PATCH** for backward-compatible fixes.
+
+## When to bump SOVERSION (the rule)
+
+Bump **SOVERSION** — and only then — when the **public ABI becomes incompatible**, for example:
+
+- removing or renaming an exported symbol;
+- changing a function signature or calling convention;
+- changing the layout/size of a public struct/class, or the value/meaning of a public constant;
+- (C++) changing a class with virtual functions, inheritance, or inline-visible members.
+
+Do **not** bump SOVERSION for backward-compatible changes (new exported functions, internal
+fixes). A compatible feature release changes VERSION but keeps SOVERSION.
+
+<!-- Autotools variant of the same rule, expressed in C:R:A. Delete if not autotools. -->
+For libtool `-version-info current:revision:age`, apply in order per release:
+`revision++` if code changed; if interfaces changed at all `current++, revision=0`;
+`age++` if the change was purely additive; `age=0` if anything was removed/changed.
+
+> Deciding *whether* a change is ABI-incompatible (e.g. with `abidiff` /
+> `abi-compliance-checker`) is outside this project's versioning setup and is handled
+> separately.
+
+## Maintenance guidelines
+
+To cut a **backward-compatible** release:
+1. Update **VERSION** in `{{VERSION_SOURCE_FILE}}` (bump MINOR or PATCH).
+2. Leave **SOVERSION** unchanged.
+3. Build and validate (below).
+
+To cut an **ABI-breaking** release:
+1. Bump **SOVERSION** (and MAJOR in VERSION) in `{{VERSION_SOURCE_FILE}}`.
+   <!-- autotools: update -version-info per the rule so current − age increases -->
+2. Build and validate; expect a new soname (`{{LIBNAME}}.so.<new>`). Old and new sonames can be
+   installed side by side.
+3. Rebuild/relink consumers against the new soname.
+
+Validate any release:
+
+```bash
+readelf -d {{LIBNAME}}.so.{{VERSION}} | grep SONAME     # -> {{LIBNAME}}.so.{{SOVERSION}}
+ls -l {{LIBNAME}}.so* ; file {{LIBNAME}}.so*            # chain resolves to an ELF shared object
+readelf -d <consumer> | grep NEEDED                     # -> the soname, not the filename
+```

@@ -1,0 +1,5 @@
+{
+  "active_skill": null,
+  "updated_at": null,
+  "_note": "Persists the active skill so context survives /clear. The agent reads this on startup and updates it whenever the active skill changes. Reset on exit. See CLAUDE.md §7."
+}

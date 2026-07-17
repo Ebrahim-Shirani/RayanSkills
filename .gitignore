@@ -18,5 +18,8 @@ node_modules/
 /tmp/
 *.log
 
+# Local authoring prompts (source material, intentionally not committed)
+*.prompt.md
+
 # Stale git-repo backup left by sandbox (safe to delete on your machine)
 .git.trash*/

@@ -1,5 +1,10 @@
 {
-  "active_skill": null,
-  "updated_at": null,
+  "active_skill": {
+    "name": "linux-abi-management",
+    "group": "linux-shared-libraries",
+    "skill_path": "skills/linux-shared-libraries/linux-abi-management",
+    "docs_path": "docs/linux-shared-libraries/linux-abi-management"
+  },
+  "updated_at": "2026-07-18T00:00:00Z",
   "_note": "Persists the active skill so context survives /clear. The agent reads this on startup and updates it whenever the active skill changes. Reset on exit. See CLAUDE.md §7."
 }

@@ -1,0 +1,12 @@
+{
+  "eval_id": 0,
+  "eval_name": "bootstrap-cross-sysroot",
+  "prompt": "We've been versioning our sensor-daemon manually in a spreadsheet until now and I want to switch to a proper semantic versioning mechanism. The repo is at <repo> — it's a CMake project cross-compiled for aarch64 (the toolchain file is in the repo, sysroot included). Our current version is 2.1.0. Set up the versioning mechanism for this project so that future releases can be computed automatically.",
+  "assertions": [
+    "dependency.md exists and line 1 is exactly the bare version string starting with 2.1.0+ (no heading or prose)",
+    "Version recorded is 2.1.0 — no bump performed on bootstrap",
+    "Target block records mode cross-sysroot with aarch64 triple and the sysroot path, enabling future automatic runs",
+    "Sysroot library versions discovered via SONAME chains: spdlog 1.9.2 and opencv_core 4.1.1",
+    "dependency.md committed and repo tagged v2.1.0"
+  ]
+}

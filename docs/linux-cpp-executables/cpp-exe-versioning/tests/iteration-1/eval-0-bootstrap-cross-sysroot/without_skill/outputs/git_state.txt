@@ -1,0 +1,32 @@
+=== git log --oneline ===
+671ab40 Add git-tag-based semantic versioning mechanism
+f8bae99 improve startup message
+248d7ed import sensor daemon sources
+
+=== git tag ===
+v2.1.0
+
+=== git status --short ===
+(clean)
+
+=== git show --stat HEAD ===
+commit 671ab406b23a4a8e82eb61001d25fe6f5b16478d
+Author: Dev <dev@team.io>
+Date:   Sun Jul 19 22:37:24 2026 +0200
+
+    Add git-tag-based semantic versioning mechanism
+    
+    - Version is computed from annotated tags (vMAJOR.MINOR.PATCH) via
+      git describe at build time; VERSION file is a tarball fallback.
+    - version.h is generated into the build tree each build and embeds
+      MAJOR/MINOR/PATCH, the full SemVer string and git describe output.
+    - CMake project() version is driven by the same source of truth.
+    - sensor-daemon now reports its version (--version).
+
+ CMakeLists.txt                    | 31 ++++++++++++++-
+ VERSION                           |  1 +
+ cmake/GenerateVersionHeader.cmake | 24 ++++++++++++
+ cmake/GetVersionFromGit.cmake     | 82 +++++++++++++++++++++++++++++++++++++++
+ cmake/version.h.in                | 15 +++++++
+ src/main.cpp                      | 16 +++++++-
+ 6 files changed, 166 insertions(+), 3 deletions(-)

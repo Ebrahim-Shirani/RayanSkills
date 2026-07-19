@@ -1,0 +1,38 @@
+{
+  "run_id": "eval-0-bootstrap-cross-sysroot-without_skill",
+  "expectations": [
+    {
+      "text": "dependency.md exists and line 1 is exactly the bare version string starting with 2.1.0+",
+      "passed": false,
+      "evidence": "no dependency.md in outputs"
+    },
+    {
+      "text": "Version recorded is 2.1.0 \u2014 no bump performed on bootstrap",
+      "passed": true,
+      "evidence": "line1='', tags mention v2.1.0: True"
+    },
+    {
+      "text": "Target block records mode cross-sysroot with aarch64 triple and sysroot path",
+      "passed": false,
+      "evidence": "no dependency.md"
+    },
+    {
+      "text": "Sysroot library versions discovered: spdlog 1.9.2 and opencv_core 4.1.1",
+      "passed": false,
+      "evidence": "spdlog 1.9.2 present: False; opencv 4.1.1 present: False"
+    },
+    {
+      "text": "dependency.md committed and repo tagged v2.1.0",
+      "passed": false,
+      "evidence": "tag v2.1.0 in git_state: True; dependency.md in release commit: False"
+    }
+  ],
+  "passed": 1,
+  "total": 5,
+  "summary": {
+    "passed": 1,
+    "failed": 4,
+    "total": 5,
+    "pass_rate": 0.2
+  }
+}

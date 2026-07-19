@@ -1,0 +1,19 @@
+=== git log --oneline ===
+259a48d chore: adopt semantic versioning, record v2.1.0 dependency baseline
+f8bae99 improve startup message
+248d7ed import sensor daemon sources
+
+=== git tag ===
+v2.1.0
+
+=== git status --short ===
+
+=== git show --stat HEAD ===
+commit 259a48dc3d0aeb6ee95760aa2d55afea4c3be542
+Author: Dev <dev@team.io>
+Date:   Sun Jul 19 22:36:34 2026 +0200
+
+    chore: adopt semantic versioning, record v2.1.0 dependency baseline
+
+ dependency.md | 42 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 42 insertions(+)

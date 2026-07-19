@@ -1,0 +1,12 @@
+{
+  "eval_id": 1,
+  "eval_name": "mixed-fix-feat-release",
+  "prompt": "Cut a new release of logtool at <repo>. The project already uses our dependency.md + git-tag versioning mechanism. Work out the new version number and produce all the release artifacts.",
+  "assertions": [
+    "New version is 1.3.0 — MINOR (feat) wins over PATCH (fix), and PATCH component reset to 0",
+    "dependency.md line 1 is exactly 1.3.0+<count>.g<hash> with regenerated BUILD metadata",
+    "A release_note file for 1.3.0 exists but is NOT committed (covered by .gitignore)",
+    "CHANGELOG.md gained a 1.3.0 section and is committed",
+    "Release commit tagged v1.3.0 and working tree clean"
+  ]
+}

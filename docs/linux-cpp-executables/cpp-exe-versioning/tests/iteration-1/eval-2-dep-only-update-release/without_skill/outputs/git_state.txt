@@ -1,0 +1,25 @@
+== git log --oneline ==
+edb3857 release 0.9.2
+830daab chore: update vendored libfoo binary to 1.4.0
+68f3083 release 0.9.1
+
+== git tag ==
+v0.9.1
+v0.9.2
+
+== git status --short ==
+
+== cat .gitignore ==
+release_note_*.md
+build/
+
+== git show --stat HEAD ==
+commit edb3857008fa2abb08ec4ae11751a2758f440ada
+Author: Dev <dev@team.io>
+Date:   Sun Jul 19 22:37:13 2026 +0200
+
+    release 0.9.2
+
+ CHANGELOG.md  |  5 +++++
+ dependency.md | 10 +++++-----
+ 2 files changed, 10 insertions(+), 5 deletions(-)

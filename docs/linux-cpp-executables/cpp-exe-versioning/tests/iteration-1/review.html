@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eval Review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg: #faf9f5;
+      --surface: #ffffff;
+      --border: #e8e6dc;
+      --text: #141413;
+      --text-muted: #b0aea5;
+      --accent: #d97757;
+      --accent-hover: #c4613f;
+      --green: #788c5d;
+      --green-bg: #eef2e8;
+      --red: #c44;
+      --red-bg: #fceaea;
+      --header-bg: #141413;
+      --header-text: #faf9f5;
+      --radius: 6px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Lora', Georgia, serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .header h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .header .instructions {
+      font-size: 0.8rem;
+      opacity: 0.7;
+      margin-top: 0.25rem;
+    }
+    .header .progress {
+      font-size: 0.875rem;
+      opacity: 0.8;
+      text-align: right;
+    }
+
+    /* ---- Main content ---- */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* ---- Sections ---- */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      flex-shrink: 0;
+    }
+    .section-header {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.75rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .section-body {
+      padding: 1rem;
+    }
+
+    /* ---- Config badge ---- */
+    .config-badge {
+      display: inline-block;
+      padding: 0.2rem 0.625rem;
+      border-radius: 9999px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-left: 0.75rem;
+      vertical-align: middle;
+    }
+    .config-badge.config-primary {
+      background: rgba(33, 150, 243, 0.12);
+      color: #1976d2;
+    }
+    .config-badge.config-baseline {
+      background: rgba(255, 193, 7, 0.15);
+      color: #f57f17;
+    }
+
+    /* ---- Prompt ---- */
+    .prompt-text {
+      white-space: pre-wrap;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+    }
+
+    /* ---- Outputs ---- */
+    .output-file {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .output-file + .output-file {
+      margin-top: 1rem;
+    }
+    .output-file-header {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .output-file-header .dl-btn {
+      font-size: 0.7rem;
+      color: var(--accent);
+      text-decoration: none;
+      cursor: pointer;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-weight: 500;
+      opacity: 0.8;
+    }
+    .output-file-header .dl-btn:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+    .output-file-content {
+      padding: 0.75rem;
+      overflow-x: auto;
+    }
+    .output-file-content pre {
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+    .output-file-content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+    .output-file-content iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+    }
+    .output-file-content table {
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+      width: 100%;
+    }
+    .output-file-content table td,
+    .output-file-content table th {
+      border: 1px solid var(--border);
+      padding: 0.375rem 0.5rem;
+      text-align: left;
+    }
+    .output-file-content table th {
+      background: var(--bg);
+      font-weight: 600;
+    }
+    .output-file-content .download-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    .output-file-content .download-link:hover {
+      background: var(--border);
+    }
+    .empty-state {
+      color: var(--text-muted);
+      font-style: italic;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    /* ---- Feedback ---- */
+    .prev-feedback {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.625rem 0.75rem;
+      margin-top: 0.75rem;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .prev-feedback-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.25rem;
+      color: var(--text-muted);
+    }
+    .feedback-textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.9375rem;
+      line-height: 1.5;
+      resize: vertical;
+      color: var(--text);
+    }
+    .feedback-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    .feedback-status {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      min-height: 1.1em;
+    }
+
+    /* ---- Grades (collapsible) ---- */
+    .grades-toggle {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .grades-toggle:hover {
+      color: var(--accent);
+    }
+    .grades-toggle .arrow {
+      margin-right: 0.5rem;
+      transition: transform 0.15s;
+      font-size: 0.75rem;
+    }
+    .grades-toggle .arrow.open {
+      transform: rotate(90deg);
+    }
+    .grades-content {
+      display: none;
+      margin-top: 0.75rem;
+    }
+    .grades-content.open {
+      display: block;
+    }
+    .grades-summary {
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .grade-badge {
+      display: inline-block;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .grade-pass { background: var(--green-bg); color: var(--green); }
+    .grade-fail { background: var(--red-bg); color: var(--red); }
+    .assertion-list {
+      list-style: none;
+    }
+    .assertion-item {
+      padding: 0.625rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8125rem;
+    }
+    .assertion-item:last-child { border-bottom: none; }
+    .assertion-status {
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+    .assertion-status.pass { color: var(--green); }
+    .assertion-status.fail { color: var(--red); }
+    .assertion-evidence {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      padding-left: 1.5rem;
+    }
+
+    /* ---- View tabs ---- */
+    .view-tabs {
+      display: flex;
+      gap: 0;
+      padding: 0 2rem;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .view-tab {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.625rem 1.25rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .view-tab:hover { color: var(--text); }
+    .view-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .view-panel { display: none; }
+    .view-panel.active { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+    /* ---- Benchmark view ---- */
+    .benchmark-view {
+      padding: 1.5rem 2rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .benchmark-table {
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.8125rem;
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+    .benchmark-table th, .benchmark-table td {
+      padding: 0.625rem 0.75rem;
+      text-align: left;
+      border: 1px solid var(--border);
+    }
+    .benchmark-table th {
+      font-family: 'Poppins', sans-serif;
+      background: var(--header-bg);
+      color: var(--header-text);
+      font-weight: 500;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .benchmark-table tr:hover { background: var(--bg); }
+    .benchmark-table tr.benchmark-row-with { background: rgba(33, 150, 243, 0.06); }
+    .benchmark-table tr.benchmark-row-without { background: rgba(255, 193, 7, 0.06); }
+    .benchmark-table tr.benchmark-row-with:hover { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-without:hover { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-table tr.benchmark-row-avg { font-weight: 600; border-top: 2px solid var(--border); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-with { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-without { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-delta-positive { color: var(--green); font-weight: 600; }
+    .benchmark-delta-negative { color: var(--red); font-weight: 600; }
+    .benchmark-notes {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+    .benchmark-notes h3 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+    }
+    .benchmark-notes ul {
+      list-style: disc;
+      padding-left: 1.25rem;
+    }
+    .benchmark-notes li {
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      margin-bottom: 0.375rem;
+    }
+    .benchmark-empty {
+      color: var(--text-muted);
+      font-style: italic;
+      text-align: center;
+      padding: 3rem;
+    }
+
+    /* ---- Navigation ---- */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    .nav-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text);
+      transition: all 0.15s;
+    }
+    .nav-btn:hover:not(:disabled) {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .done-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    .done-btn:hover {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .done-btn.ready {
+      border: none;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+    }
+    .done-btn.ready:hover {
+      background: var(--accent-hover);
+    }
+    /* ---- Done overlay ---- */
+    .done-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+    .done-overlay.visible {
+      display: flex;
+    }
+    .done-card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 2rem 3rem;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+    }
+    .done-card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .done-card p {
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+    .done-card .btn-row {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .done-card button {
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+    .done-card button:hover {
+      background: var(--bg);
+    }
+    /* ---- Toast ---- */
+    .toast {
+      position: fixed;
+      bottom: 5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 0.625rem 1.25rem;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 200;
+    }
+    .toast.visible {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" style="height:100vh; display:flex; flex-direction:column;">
+    <div class="header">
+      <div>
+        <h1>Eval Review: <span id="skill-name"></span></h1>
+        <div class="instructions">Review each output and leave feedback below. Navigate with arrow keys or buttons. When done, copy feedback and paste into Claude Code.</div>
+      </div>
+      <div class="progress" id="progress"></div>
+    </div>
+
+    <!-- View tabs (only shown when benchmark data exists) -->
+    <div class="view-tabs" id="view-tabs" style="display:none;">
+      <button class="view-tab active" onclick="switchView('outputs')">Outputs</button>
+      <button class="view-tab" onclick="switchView('benchmark')">Benchmark</button>
+    </div>
+
+    <!-- Outputs panel (qualitative review) -->
+    <div class="view-panel active" id="panel-outputs">
+    <div class="main">
+      <!-- Prompt -->
+      <div class="section">
+        <div class="section-header">Prompt <span class="config-badge" id="config-badge" style="display:none;"></span></div>
+        <div class="section-body">
+          <div class="prompt-text" id="prompt-text"></div>
+        </div>
+      </div>
+
+      <!-- Outputs -->
+      <div class="section">
+        <div class="section-header">Output</div>
+        <div class="section-body" id="outputs-body">
+          <div class="empty-state">No output files found</div>
+        </div>
+      </div>
+
+      <!-- Previous Output (collapsible) -->
+      <div class="section" id="prev-outputs-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="togglePrevOutputs()">
+            <span class="arrow" id="prev-outputs-arrow">&#9654;</span>
+            Previous Output
+          </div>
+        </div>
+        <div class="grades-content" id="prev-outputs-content"></div>
+      </div>
+
+      <!-- Grades (collapsible) -->
+      <div class="section" id="grades-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="toggleGrades()">
+            <span class="arrow" id="grades-arrow">&#9654;</span>
+            Formal Grades
+          </div>
+        </div>
+        <div class="grades-content" id="grades-content"></div>
+      </div>
+
+      <!-- Feedback -->
+      <div class="section">
+        <div class="section-header">Your Feedback</div>
+        <div class="section-body">
+          <textarea
+            class="feedback-textarea"
+            id="feedback"
+            placeholder="What do you think of this output? Any issues, suggestions, or things that look great?"
+          ></textarea>
+          <div class="feedback-status" id="feedback-status"></div>
+          <div class="prev-feedback" id="prev-feedback" style="display:none;">
+            <div class="prev-feedback-label">Previous feedback</div>
+            <div id="prev-feedback-text"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav" id="outputs-nav">
+      <button class="nav-btn" id="prev-btn" onclick="navigate(-1)">&#8592; Previous</button>
+      <button class="done-btn" id="done-btn" onclick="showDoneDialog()">Submit All Reviews</button>
+      <button class="nav-btn" id="next-btn" onclick="navigate(1)">Next &#8594;</button>
+    </div>
+    </div><!-- end panel-outputs -->
+
+    <!-- Benchmark panel (quantitative stats) -->
+    <div class="view-panel" id="panel-benchmark">
+      <div class="benchmark-view" id="benchmark-content">
+        <div class="benchmark-empty">No benchmark data available. Run a benchmark to see quantitative results here.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Done overlay -->
+  <div class="done-overlay" id="done-overlay">
+    <div class="done-card">
+      <h2>Review Complete</h2>
+      <p>Your feedback has been saved. Go back to your Claude Code session and tell Claude you're done reviewing.</p>
+      <div class="btn-row">
+        <button onclick="closeDoneDialog()">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ---- Embedded data (injected by generate_review.py) ----
+    const EMBEDDED_DATA = {"skill_name": "cpp-exe-versioning", "runs": [{"id": "eval-0-bootstrap-cross-sysroot-with_skill", "prompt": "We've been versioning our sensor-daemon manually in a spreadsheet until now and I want to switch to a proper semantic versioning mechanism. The repo is at <repo> \u2014 it's a CMake project cross-compiled for aarch64 (the toolchain file is in the repo, sysroot included). Our current version is 2.1.0. Set up the versioning mechanism for this project so that future releases can be computed automatically.", "eval_id": 0, "outputs": [{"name": "dependency.md", "type": "text", "content": "2.1.0+2.gf8bae99\n\n## Snapshot\n\n```yaml\nversion: 2.1.0\nbuild: 2.gf8bae99\nreleased: 2026-07-19\ntarget:\n  mode: cross-sysroot     # native | cross-sysroot | remote\n  triple: aarch64-linux-gnu\n  ssh_host: null          # remote mode only\n  sysroot: sysroot        # repo-relative; toolchain-aarch64.cmake sets CMAKE_SYSROOT\n  automated: true         # facts collectable without asking the user\ntoolchain:\n  compiler: aarch64-linux-gnu-g++ (version unknown - cross compiler not installed on this host)\n  cxx_standard: 14\ndependencies:\n  - name: opencv_core\n    kind: third-party\n    version: 4.1.1\n    soname: libopencv_core.so.4.1\n    version_source: soname\n  - name: spdlog\n    kind: third-party\n    version: 1.9.2\n    soname: libspdlog.so.1\n    version_source: soname\n```\n\n## Notes\n\n- Bootstrap baseline: project was previously versioned manually (spreadsheet);\n  2.1.0 was provided as the current version. No bump computed on this first run.\n- Facts collected from the in-repo sysroot (`sysroot/usr/lib/aarch64-linux-gnu`)\n  by SONAME/realname; no pkg-config metadata present in the sysroot.\n- No built executable was available, so declared CMake dependencies\n  (`target_link_libraries`: spdlog, opencv_core) were used; run\n  `extract_deps.py <binary> --sysroot sysroot` on the next release once a\n  binary exists.\n- Record the cross compiler version on the next run if the toolchain becomes\n  available on the host.\n"}, {"name": "git_state.txt", "type": "text", "content": "=== git log --oneline ===\n259a48d chore: adopt semantic versioning, record v2.1.0 dependency baseline\nf8bae99 improve startup message\n248d7ed import sensor daemon sources\n\n=== git tag ===\nv2.1.0\n\n=== git status --short ===\n\n=== git show --stat HEAD ===\ncommit 259a48dc3d0aeb6ee95760aa2d55afea4c3be542\nAuthor: Dev <dev@team.io>\nDate:   Sun Jul 19 22:36:34 2026 +0200\n\n    chore: adopt semantic versioning, record v2.1.0 dependency baseline\n\n dependency.md | 42 ++++++++++++++++++++++++++++++++++++++++++\n 1 file changed, 42 insertions(+)\n"}], "grading": {"run_id": "eval-0-bootstrap-cross-sysroot-with_skill", "expectations": [{"text": "dependency.md exists and line 1 is exactly the bare version string starting with 2.1.0+", "passed": true, "evidence": "line 1: '2.1.0+2.gf8bae99'"}, {"text": "Version recorded is 2.1.0 \u2014 no bump performed on bootstrap", "passed": true, "evidence": "line1='2.1.0+2.gf8bae99', tags mention v2.1.0: True"}, {"text": "Target block records mode cross-sysroot with aarch64 triple and sysroot path", "passed": true, "evidence": "found: cross-sysroot, aarch64, sysroot"}, {"text": "Sysroot library versions discovered: spdlog 1.9.2 and opencv_core 4.1.1", "passed": true, "evidence": "spdlog 1.9.2 present: True; opencv 4.1.1 present: True"}, {"text": "dependency.md committed and repo tagged v2.1.0", "passed": true, "evidence": "tag v2.1.0 in git_state: True; dependency.md in release commit: True"}], "passed": 5, "total": 5, "summary": {"passed": 5, "failed": 0, "total": 5, "pass_rate": 1.0}}}, {"id": "eval-0-bootstrap-cross-sysroot-without_skill", "prompt": "We've been versioning our sensor-daemon manually in a spreadsheet until now and I want to switch to a proper semantic versioning mechanism. The repo is at <repo> \u2014 it's a CMake project cross-compiled for aarch64 (the toolchain file is in the repo, sysroot included). Our current version is 2.1.0. Set up the versioning mechanism for this project so that future releases can be computed automatically.", "eval_id": 0, "outputs": [{"name": "CMakeLists.txt", "type": "text", "content": "cmake_minimum_required(VERSION 3.10)\n\n# ---------------------------------------------------------------------------\n# Semantic versioning: the version is derived automatically from annotated\n# git tags (v<MAJOR>.<MINOR>.<PATCH>).  To cut a release, create a tag:\n#     git tag -a v2.2.0 -m \"release 2.2.0\"\n# See cmake/GetVersionFromGit.cmake for details and the tarball fallback.\n# ---------------------------------------------------------------------------\ninclude(${CMAKE_CURRENT_LIST_DIR}/cmake/GetVersionFromGit.cmake)\nget_version_from_git()\n\nproject(sensor_daemon VERSION ${GIT_VERSION_TRIPLET} LANGUAGES CXX)\nmessage(STATUS \"sensor_daemon version: ${GIT_SEMVER}\")\n\nset(CMAKE_CXX_STANDARD 14)\nset(CMAKE_CXX_STANDARD_REQUIRED ON)\n\n# Regenerate the version header on every build (cheap, content-guarded) so\n# the embedded version tracks git without needing a re-configure.\nset(VERSION_HEADER_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated)\nset(VERSION_HEADER ${VERSION_HEADER_DIR}/version.h)\nadd_custom_target(generate_version_header\n    COMMAND ${CMAKE_COMMAND}\n            -DSRC_DIR=${CMAKE_CURRENT_SOURCE_DIR}\n            -DIN_FILE=${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.h.in\n            -DOUT_FILE=${VERSION_HEADER}\n            -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/GenerateVersionHeader.cmake\n    BYPRODUCTS ${VERSION_HEADER}\n    COMMENT \"Generating version.h from git describe\"\n    VERBATIM)\n\nadd_executable(sensor_daemon src/main.cpp)\nadd_dependencies(sensor_daemon generate_version_header)\ntarget_include_directories(sensor_daemon PRIVATE ${VERSION_HEADER_DIR})\ntarget_link_libraries(sensor_daemon spdlog opencv_core)\n"}, {"name": "VERSION", "type": "binary", "mime": "application/octet-stream", "data_uri": "data:application/octet-stream;base64,Mi4xLjAK"}, {"name": "git_state.txt", "type": "text", "content": "=== git log --oneline ===\n671ab40 Add git-tag-based semantic versioning mechanism\nf8bae99 improve startup message\n248d7ed import sensor daemon sources\n\n=== git tag ===\nv2.1.0\n\n=== git status --short ===\n(clean)\n\n=== git show --stat HEAD ===\ncommit 671ab406b23a4a8e82eb61001d25fe6f5b16478d\nAuthor: Dev <dev@team.io>\nDate:   Sun Jul 19 22:37:24 2026 +0200\n\n    Add git-tag-based semantic versioning mechanism\n    \n    - Version is computed from annotated tags (vMAJOR.MINOR.PATCH) via\n      git describe at build time; VERSION file is a tarball fallback.\n    - version.h is generated into the build tree each build and embeds\n      MAJOR/MINOR/PATCH, the full SemVer string and git describe output.\n    - CMake project() version is driven by the same source of truth.\n    - sensor-daemon now reports its version (--version).\n\n CMakeLists.txt                    | 31 ++++++++++++++-\n VERSION                           |  1 +\n cmake/GenerateVersionHeader.cmake | 24 ++++++++++++\n cmake/GetVersionFromGit.cmake     | 82 +++++++++++++++++++++++++++++++++++++++\n cmake/version.h.in                | 15 +++++++\n src/main.cpp                      | 16 +++++++-\n 6 files changed, 166 insertions(+), 3 deletions(-)\n"}, {"name": "main.cpp", "type": "text", "content": "#include \"version.h\"\n\n#include <cstdio>\n#include <cstring>\n\nint main(int argc, char** argv)\n{\n    if (argc > 1 && std::strcmp(argv[1], \"--version\") == 0)\n    {\n        std::printf(\"sensor-daemon %s\\n\", SENSOR_DAEMON_VERSION);\n        return 0;\n    }\n    std::printf(\"sensor-daemon %s\\n\", SENSOR_DAEMON_VERSION);\n    return 0;\n}\n"}], "grading": {"run_id": "eval-0-bootstrap-cross-sysroot-without_skill", "expectations": [{"text": "dependency.md exists and line 1 is exactly the bare version string starting with 2.1.0+", "passed": false, "evidence": "no dependency.md in outputs"}, {"text": "Version recorded is 2.1.0 \u2014 no bump performed on bootstrap", "passed": true, "evidence": "line1='', tags mention v2.1.0: True"}, {"text": "Target block records mode cross-sysroot with aarch64 triple and sysroot path", "passed": false, "evidence": "no dependency.md"}, {"text": "Sysroot library versions discovered: spdlog 1.9.2 and opencv_core 4.1.1", "passed": false, "evidence": "spdlog 1.9.2 present: False; opencv 4.1.1 present: False"}, {"text": "dependency.md committed and repo tagged v2.1.0", "passed": false, "evidence": "tag v2.1.0 in git_state: True; dependency.md in release commit: False"}], "passed": 1, "total": 5, "summary": {"passed": 1, "failed": 4, "total": 5, "pass_rate": 0.2}}}, {"id": "eval-1-mixed-fix-feat-release-with_skill", "prompt": "Cut a new release of logtool at <repo>. The project already uses our dependency.md + git-tag versioning mechanism. Work out the new version number and produce all the release artifacts.", "eval_id": 1, "outputs": [{"name": "CHANGELOG.md", "type": "text", "content": "# Changelog\n\n## 1.3.0 \u2014 2026-07-19\n- feat: add --json output mode for machine-readable logs\n- fix: print correct zlib version string on startup\n- build: libstdc++ no longer in the executable's DT_NEEDED (no behavior change)\n\n## 1.2.3 \u2014 2026-06-01\n- fix: correct rotation of empty log files\n"}, {"name": "dependency.md", "type": "text", "content": "1.3.0+3.g2c82bfb\n\n## Snapshot\n\n```yaml\nversion: 1.3.0\nbuild: 3.g2c82bfb\nreleased: 2026-07-19\ntarget:\n  mode: native\n  triple: x86_64-linux-gnu\n  ssh_host: null\n  sysroot: null\n  automated: true\ntoolchain:\n  compiler: g++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0\n  cxx_standard: 17\ndependencies:\n  - name: zlib\n    kind: third-party\n    version: 1.2.11\n    soname: libz.so.1\n    version_source: dpkg\n  - name: libc\n    kind: standard\n    version: \"6\"\n    soname: libc.so.6\n    version_source: soname\n```\n\n## Notes\n\n- Native build; all facts collected locally on x86_64-linux-gnu.\n- ELF DT_NEEDED of `build/logtool`: `libz.so.1`, `libc.so.6`. `libstdc++.so.6`\n  from the previous snapshot is no longer in DT_NEEDED (no C++ runtime\n  symbols referenced); recorded set updated to match the binary.\n"}, {"name": "git_state.txt", "type": "text", "content": "=== git log --oneline ===\nbf7e0fc release 1.3.0\n2c82bfb feat: add --json output mode for machine-readable logs\n25646f5 fix: print correct zlib version string on startup\nccd71e2 release 1.2.3\n\n=== git tag ===\nv1.2.3\nv1.3.0\n\n=== git status --short ===\n\n=== .gitignore ===\nrelease_note_*.md\nbuild/\n\n=== git show --stat HEAD ===\ncommit bf7e0fce62dffb32de8027eb6324c6d665e5d88e\nAuthor: Dev <dev@team.io>\nDate:   Sun Jul 19 22:36:39 2026 +0200\n\n    release 1.3.0\n\n CHANGELOG.md  |  5 +++++\n dependency.md | 19 +++++++++++++------\n 2 files changed, 18 insertions(+), 6 deletions(-)\n"}, {"name": "release_note_1.3.0+3.g2c82bfb.md", "type": "text", "content": "# logtool 1.3.0+3.g2c82bfb \u2014 2026-07-19\n\nMinor release (1.2.3 -> 1.3.0): one new backward-compatible capability and\none bug fix. Existing configs, flags, and default output are unchanged.\n\n## Changes\n\n- **feat: add --json output mode for machine-readable logs** (`2c82bfb`)\n  Adds a new `--json` flag that emits logs in a machine-readable JSON\n  format, for consumption by scripts and log pipelines. The default\n  human-readable output is untouched, so existing workflows keep working.\n  Classified MINOR (new capability, old behavior preserved) \u2014 this sets the\n  release bump.\n\n- **fix: print correct zlib version string on startup** (`25646f5`)\n  The startup banner previously reported a wrong zlib version; it now prints\n  the version actually linked (via `zlibVersion()`). No interface change.\n  Classified PATCH.\n\n- **Dependency link set: libstdc++ no longer required** (build observation)\n  The built executable's DT_NEEDED now lists only `libz.so.1` and\n  `libc.so.6`; `libstdc++.so.6` is no longer needed. No user-visible\n  behavior change. Classified PATCH.\n\n## Dependencies\n\n- zlib 1.2.11 (dpkg) \u2014 unchanged\n- Toolchain: g++ 11.4.0, C++17 \u2014 unchanged\n"}], "grading": {"run_id": "eval-1-mixed-fix-feat-release-with_skill", "expectations": [{"text": "New version is 1.3.0 \u2014 MINOR wins over PATCH, patch reset to 0", "passed": true, "evidence": "line 1: '1.3.0+3.g2c82bfb'"}, {"text": "dependency.md line 1 is exactly 1.3.0+<count>.g<hash>", "passed": true, "evidence": "line 1: '1.3.0+3.g2c82bfb'"}, {"text": "A release_note file for 1.3.0 exists and is NOT committed (gitignored)", "passed": true, "evidence": "release notes: ['release_note_1.3.0+3.g2c82bfb.md']; in HEAD commit: False"}, {"text": "CHANGELOG.md gained a 1.3.0 section and is committed", "passed": true, "evidence": "1.3.0 in CHANGELOG: True; CHANGELOG in git_state: True"}, {"text": "Release commit tagged v1.3.0 and working tree clean", "passed": true, "evidence": "v1.3.0 in git_state: True"}], "passed": 5, "total": 5, "summary": {"passed": 5, "failed": 0, "total": 5, "pass_rate": 1.0}}}, {"id": "eval-1-mixed-fix-feat-release-without_skill", "prompt": "Cut a new release of logtool at <repo>. The project already uses our dependency.md + git-tag versioning mechanism. Work out the new version number and produce all the release artifacts.", "eval_id": 1, "outputs": [{"name": "CHANGELOG.md", "type": "text", "content": "# Changelog\n\n## 1.3.0 \u2014 2026-07-19\n- feat: add --json output mode for machine-readable logs\n- fix: print correct zlib version string on startup\n\n## 1.2.3 \u2014 2026-06-01\n- fix: correct rotation of empty log files\n"}, {"name": "dependency.md", "type": "text", "content": "1.3.0+2.g2c82bfb\n\n## Snapshot\n\n```yaml\nversion: 1.3.0\nbuild: 2.g2c82bfb\nreleased: 2026-07-19\ntarget:\n  mode: native\n  triple: x86_64-linux-gnu\n  ssh_host: null\n  sysroot: null\n  automated: true\ntoolchain:\n  compiler: g++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0\n  cxx_standard: 17\ndependencies:\n  - name: zlib\n    kind: third-party\n    version: 1.2.11\n    soname: libz.so.1\n    version_source: dpkg\n  - name: libstdc++\n    kind: standard\n    version: \"6\"\n    soname: libstdc++.so.6\n    version_source: soname\n```\n"}, {"name": "git_state.txt", "type": "text", "content": "== git log ==\nafb0159 release 1.3.0\n2c82bfb feat: add --json output mode for machine-readable logs\n25646f5 fix: print correct zlib version string on startup\nccd71e2 release 1.2.3\n== tags ==\nv1.2.3\nv1.3.0\n== status ==\n== gitignore ==\nrelease_note_*.md\nbuild/\n== show --stat HEAD ==\ncommit afb015980a4f486f1b0e16313f1de37a495a5960\nAuthor: Dev <dev@team.io>\nDate:   Sun Jul 19 22:36:58 2026 +0200\n\n    release 1.3.0\n\n CHANGELOG.md  | 4 ++++\n dependency.md | 8 ++++----\n 2 files changed, 8 insertions(+), 4 deletions(-)\n"}, {"name": "release_note_1.3.0.md", "type": "text", "content": "# logtool 1.3.0 \u2014 Release Notes\n\nReleased: 2026-07-19\nBuild: 1.3.0+2.g2c82bfb (2 commits since v1.2.3, base 2c82bfb)\nTarget: native x86_64-linux-gnu\n\n## Why 1.3.0\n\nChanges since v1.2.3 include one feature and one fix; per semantic\nversioning the feature drives a minor bump (1.2.3 -> 1.3.0).\n\n## Changes\n\n### Features\n- Add --json output mode for machine-readable logs (2c82bfb)\n\n### Fixes\n- Print correct zlib version string on startup (25646f5)\n\n## Dependencies\n\n- zlib 1.2.11 (libz.so.1, from dpkg) \u2014 unchanged\n- libstdc++ 6 (libstdc++.so.6) \u2014 unchanged\n\nToolchain: g++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0, C++17.\nVerified: release binary rebuilt and smoke-tested (`logtool version 1.2.11`).\n"}], "grading": {"run_id": "eval-1-mixed-fix-feat-release-without_skill", "expectations": [{"text": "New version is 1.3.0 \u2014 MINOR wins over PATCH, patch reset to 0", "passed": true, "evidence": "line 1: '1.3.0+2.g2c82bfb'"}, {"text": "dependency.md line 1 is exactly 1.3.0+<count>.g<hash>", "passed": true, "evidence": "line 1: '1.3.0+2.g2c82bfb'"}, {"text": "A release_note file for 1.3.0 exists and is NOT committed (gitignored)", "passed": true, "evidence": "release notes: ['release_note_1.3.0.md']; in HEAD commit: False"}, {"text": "CHANGELOG.md gained a 1.3.0 section and is committed", "passed": true, "evidence": "1.3.0 in CHANGELOG: True; CHANGELOG in git_state: True"}, {"text": "Release commit tagged v1.3.0 and working tree clean", "passed": true, "evidence": "v1.3.0 in git_state: True"}], "passed": 5, "total": 5, "summary": {"passed": 5, "failed": 0, "total": 5, "pass_rate": 1.0}}}, {"id": "eval-2-dep-only-update-release-with_skill", "prompt": "Time to release fooapp at <repo>. Since the last release the only thing that happened is that we dropped in an updated build of the vendored libfoo \u2014 no source changes at all. What should the new version be? Generate the release artifacts as well.", "eval_id": 2, "outputs": [{"name": "CHANGELOG.md", "type": "text", "content": "# Changelog\n\n## 0.9.1 \u2014 2026-05-10\n- fix: initial packaging fixes\n\n## 0.9.2 \u2014 2026-07-19\n- chore: updated vendored in-house library libfoo 1.2.0 -> 1.4.0\n  (SONAME libfoo.so.1 unchanged, ABI-compatible; no application source\n  changes). Invisible dependency refresh -> PATCH release.\n"}, {"name": "dependency.md", "type": "text", "content": "0.9.2+2.g830daab\n\n## Snapshot\n\n```yaml\nversion: 0.9.2\nbuild: 2.g830daab\nreleased: 2026-07-19\ntarget:\n  mode: native\n  triple: x86_64-linux-gnu\n  ssh_host: null\n  sysroot: null\n  automated: true\ntoolchain:\n  compiler: g++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0\n  cxx_standard: 17\ndependencies:\n  - name: foo\n    kind: in-house\n    version: 1.4.0\n    soname: libfoo.so.1\n    version_source: soname\n  - name: libc\n    kind: standard\n    version: \"6\"\n    soname: libc.so.6\n    version_source: soname\n```\n\n## Notes\n\n- Native build; facts collected locally from `build/fooapp` (ELF DT_NEEDED)\n  and `libs/` realnames.\n- libfoo updated 1.2.0 -> 1.4.0 with SONAME unchanged (`libfoo.so.1`);\n  no app source changes in this release.\n- The previous snapshot listed `libstdc++`; the current binary's DT_NEEDED\n  contains only `libfoo.so.1` and `libc.so.6` (the app uses no C++ runtime\n  symbols). Recorded what the binary actually needs. No behavior impact.\n- BUILD computed at commit 830daab, the source state the released binary\n  was built from.\n"}, {"name": "git_state.txt", "type": "text", "content": "=== git log --oneline ===\n3af2742 release 0.9.2: libfoo 1.2.0 -> 1.4.0 (dependency-only PATCH)\n830daab chore: update vendored libfoo binary to 1.4.0\n68f3083 release 0.9.1\n\n=== git tag ===\nv0.9.1\nv0.9.2\n\n=== git status --short ===\n\n=== cat .gitignore ===\nrelease_note_*.md\nbuild/\n\n=== git show --stat HEAD ===\ncommit 3af2742344a5b52dd0d7fc7d0d93af07535fee6a\nAuthor: Dev <dev@team.io>\nDate:   Sun Jul 19 22:37:07 2026 +0200\n\n    release 0.9.2: libfoo 1.2.0 -> 1.4.0 (dependency-only PATCH)\n\n CHANGELOG.md  |  5 +++++\n dependency.md | 26 +++++++++++++++++++-------\n 2 files changed, 24 insertions(+), 7 deletions(-)\n"}, {"name": "release_note_0.9.2+2.g830daab.md", "type": "text", "content": "# fooapp 0.9.2+2.g830daab \u2014 Release Notes (2026-07-19)\n\n## Changes since v0.9.1\n\n- **Vendored libfoo updated 1.2.0 -> 1.4.0** (commit `830daab`).\n  - What changed: the prebuilt in-house library `libs/libfoo.so.1.4.0`\n    replaced `libs/libfoo.so.1.2.0`; the SONAME `libfoo.so.1` is unchanged,\n    so the ABI remains compatible by convention.\n  - Why: routine drop-in of an updated build of the vendored dependency.\n  - Impact: no application source changes, no CLI/config/data/behavior\n    contract changes for users. Classified as PATCH (dependency version\n    changed, app code untouched).\n\n## Version reasoning\n\n- Bump: PATCH (leftmost and only change class) -> 0.9.1 -> 0.9.2\n- BUILD: 2.g830daab (commit count + short hash of the built source state)\n"}], "grading": {"run_id": "eval-2-dep-only-update-release-with_skill", "expectations": [{"text": "New version is 0.9.2 \u2014 dependency-only change is a PATCH", "passed": true, "evidence": "line 1: '0.9.2+2.g830daab'"}, {"text": "dependency.md line 1 is exactly 0.9.2+<count>.g<hash>", "passed": true, "evidence": "line 1: '0.9.2+2.g830daab'"}, {"text": "dependency.md snapshot shows libfoo at 1.4.0", "passed": true, "evidence": "1.4.0 present: True; soname libfoo.so.1 present: True"}, {"text": "Release note uncommitted (gitignored); CHANGELOG.md committed with 0.9.2 entry", "passed": true, "evidence": "release notes: ['release_note_0.9.2+2.g830daab.md']; committed: False; 0.9.2 in CHANGELOG: True"}, {"text": "Release commit tagged v0.9.2", "passed": true, "evidence": "v0.9.2 in git_state: True"}], "passed": 5, "total": 5, "summary": {"passed": 5, "failed": 0, "total": 5, "pass_rate": 1.0}}}, {"id": "eval-2-dep-only-update-release-without_skill", "prompt": "Time to release fooapp at <repo>. Since the last release the only thing that happened is that we dropped in an updated build of the vendored libfoo \u2014 no source changes at all. What should the new version be? Generate the release artifacts as well.", "eval_id": 2, "outputs": [{"name": "CHANGELOG.md", "type": "text", "content": "# Changelog\n\n## 0.9.2 \u2014 2026-07-19\n- chore: update vendored libfoo binary from 1.2.0 to 1.4.0 (drop-in,\n  ABI-compatible: SONAME libfoo.so.1 unchanged). No application source\n  changes.\n\n## 0.9.1 \u2014 2026-05-10\n- fix: initial packaging fixes\n"}, {"name": "dependency.md", "type": "text", "content": "0.9.2+1.g830daab\n\n## Snapshot\n\n```yaml\nversion: 0.9.2\nbuild: 1.g830daab\nreleased: 2026-07-19\ntarget:\n  mode: native\n  triple: x86_64-linux-gnu\n  ssh_host: null\n  sysroot: null\n  automated: true\ntoolchain:\n  compiler: g++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0\n  cxx_standard: 17\ndependencies:\n  - name: foo\n    kind: in-house\n    version: 1.4.0\n    soname: libfoo.so.1\n    version_source: soname\n  - name: libstdc++\n    kind: standard\n    version: \"6\"\n    soname: libstdc++.so.6\n    version_source: soname\n```\n"}, {"name": "git_state.txt", "type": "text", "content": "== git log --oneline ==\nedb3857 release 0.9.2\n830daab chore: update vendored libfoo binary to 1.4.0\n68f3083 release 0.9.1\n\n== git tag ==\nv0.9.1\nv0.9.2\n\n== git status --short ==\n\n== cat .gitignore ==\nrelease_note_*.md\nbuild/\n\n== git show --stat HEAD ==\ncommit edb3857008fa2abb08ec4ae11751a2758f440ada\nAuthor: Dev <dev@team.io>\nDate:   Sun Jul 19 22:37:13 2026 +0200\n\n    release 0.9.2\n\n CHANGELOG.md  |  5 +++++\n dependency.md | 10 +++++-----\n 2 files changed, 10 insertions(+), 5 deletions(-)\n"}, {"name": "release_note_0.9.2.md", "type": "text", "content": "# fooapp 0.9.2 \u2014 Release Notes\n\nReleased: 2026-07-19\nBuild: 0.9.2+1.g830daab\n\n## Summary\n\nPatch release. The only change since 0.9.1 is an updated build of the\nvendored in-house dependency libfoo: 1.2.0 -> 1.4.0. There are no\napplication source changes, so the app's own behavior/API is unchanged\nand this is a patch-level bump (0.9.1 -> 0.9.2).\n\n## Changes\n\n- Vendored libfoo updated from 1.2.0 to 1.4.0 (libs/libfoo.so.1.4.0).\n- SONAME is unchanged (libfoo.so.1), i.e. the update is ABI-compatible;\n  the existing fooapp binary (linked against libfoo.so.1 with runpath\n  $ORIGIN/../libs) picks up the new library without a rebuild.\n- Verified: build/fooapp runs against libfoo 1.4.0 (smoke test passes,\n  resolves libs/libfoo.so.1 -> libfoo.so.1.4.0).\n\n## Dependencies\n\n| Name      | Kind     | Version | SONAME         |\n|-----------|----------|---------|----------------|\n| foo       | in-house | 1.4.0   | libfoo.so.1    |\n| libstdc++ | standard | 6       | libstdc++.so.6 |\n"}], "grading": {"run_id": "eval-2-dep-only-update-release-without_skill", "expectations": [{"text": "New version is 0.9.2 \u2014 dependency-only change is a PATCH", "passed": true, "evidence": "line 1: '0.9.2+1.g830daab'"}, {"text": "dependency.md line 1 is exactly 0.9.2+<count>.g<hash>", "passed": true, "evidence": "line 1: '0.9.2+1.g830daab'"}, {"text": "dependency.md snapshot shows libfoo at 1.4.0", "passed": true, "evidence": "1.4.0 present: True; soname libfoo.so.1 present: True"}, {"text": "Release note uncommitted (gitignored); CHANGELOG.md committed with 0.9.2 entry", "passed": true, "evidence": "release notes: ['release_note_0.9.2.md']; committed: False; 0.9.2 in CHANGELOG: True"}, {"text": "Release commit tagged v0.9.2", "passed": true, "evidence": "v0.9.2 in git_state: True"}], "passed": 5, "total": 5, "summary": {"passed": 5, "failed": 0, "total": 5, "pass_rate": 1.0}}}], "previous_feedback": {}, "previous_outputs": {}, "benchmark": {"metadata": {"skill_name": "cpp-exe-versioning", "skill_path": "<path/to/skill>", "executor_model": "<model-name>", "analyzer_model": "<model-name>", "timestamp": "2026-07-19T20:42:00Z", "evals_run": [0, 1, 2], "runs_per_configuration": 3}, "runs": [{"eval_id": 0, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5, "time_seconds": 109.0, "tokens": 34811, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "dependency.md exists and line 1 is exactly the bare version string starting with 2.1.0+", "passed": true, "evidence": "line 1: '2.1.0+2.gf8bae99'"}, {"text": "Version recorded is 2.1.0 \u2014 no bump performed on bootstrap", "passed": true, "evidence": "line1='2.1.0+2.gf8bae99', tags mention v2.1.0: True"}, {"text": "Target block records mode cross-sysroot with aarch64 triple and sysroot path", "passed": true, "evidence": "found: cross-sysroot, aarch64, sysroot"}, {"text": "Sysroot library versions discovered: spdlog 1.9.2 and opencv_core 4.1.1", "passed": true, "evidence": "spdlog 1.9.2 present: True; opencv 4.1.1 present: True"}, {"text": "dependency.md committed and repo tagged v2.1.0", "passed": true, "evidence": "tag v2.1.0 in git_state: True; dependency.md in release commit: True"}], "notes": []}, {"eval_id": 1, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5, "time_seconds": 101.8, "tokens": 35399, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "New version is 1.3.0 \u2014 MINOR wins over PATCH, patch reset to 0", "passed": true, "evidence": "line 1: '1.3.0+3.g2c82bfb'"}, {"text": "dependency.md line 1 is exactly 1.3.0+<count>.g<hash>", "passed": true, "evidence": "line 1: '1.3.0+3.g2c82bfb'"}, {"text": "A release_note file for 1.3.0 exists and is NOT committed (gitignored)", "passed": true, "evidence": "release notes: ['release_note_1.3.0+3.g2c82bfb.md']; in HEAD commit: False"}, {"text": "CHANGELOG.md gained a 1.3.0 section and is committed", "passed": true, "evidence": "1.3.0 in CHANGELOG: True; CHANGELOG in git_state: True"}, {"text": "Release commit tagged v1.3.0 and working tree clean", "passed": true, "evidence": "v1.3.0 in git_state: True"}], "notes": []}, {"eval_id": 2, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5, "time_seconds": 122.2, "tokens": 37821, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "New version is 0.9.2 \u2014 dependency-only change is a PATCH", "passed": true, "evidence": "line 1: '0.9.2+2.g830daab'"}, {"text": "dependency.md line 1 is exactly 0.9.2+<count>.g<hash>", "passed": true, "evidence": "line 1: '0.9.2+2.g830daab'"}, {"text": "dependency.md snapshot shows libfoo at 1.4.0", "passed": true, "evidence": "1.4.0 present: True; soname libfoo.so.1 present: True"}, {"text": "Release note uncommitted (gitignored); CHANGELOG.md committed with 0.9.2 entry", "passed": true, "evidence": "release notes: ['release_note_0.9.2+2.g830daab.md']; committed: False; 0.9.2 in CHANGELOG: True"}, {"text": "Release commit tagged v0.9.2", "passed": true, "evidence": "v0.9.2 in git_state: True"}], "notes": []}, {"eval_id": 0, "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 0.2, "passed": 1, "failed": 4, "total": 5, "time_seconds": 194.5, "tokens": 32069, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "dependency.md exists and line 1 is exactly the bare version string starting with 2.1.0+", "passed": false, "evidence": "no dependency.md in outputs"}, {"text": "Version recorded is 2.1.0 \u2014 no bump performed on bootstrap", "passed": true, "evidence": "line1='', tags mention v2.1.0: True"}, {"text": "Target block records mode cross-sysroot with aarch64 triple and sysroot path", "passed": false, "evidence": "no dependency.md"}, {"text": "Sysroot library versions discovered: spdlog 1.9.2 and opencv_core 4.1.1", "passed": false, "evidence": "spdlog 1.9.2 present: False; opencv 4.1.1 present: False"}, {"text": "dependency.md committed and repo tagged v2.1.0", "passed": false, "evidence": "tag v2.1.0 in git_state: True; dependency.md in release commit: False"}], "notes": []}, {"eval_id": 1, "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5, "time_seconds": 278.9, "tokens": 26860, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "New version is 1.3.0 \u2014 MINOR wins over PATCH, patch reset to 0", "passed": true, "evidence": "line 1: '1.3.0+2.g2c82bfb'"}, {"text": "dependency.md line 1 is exactly 1.3.0+<count>.g<hash>", "passed": true, "evidence": "line 1: '1.3.0+2.g2c82bfb'"}, {"text": "A release_note file for 1.3.0 exists and is NOT committed (gitignored)", "passed": true, "evidence": "release notes: ['release_note_1.3.0.md']; in HEAD commit: False"}, {"text": "CHANGELOG.md gained a 1.3.0 section and is committed", "passed": true, "evidence": "1.3.0 in CHANGELOG: True; CHANGELOG in git_state: True"}, {"text": "Release commit tagged v1.3.0 and working tree clean", "passed": true, "evidence": "v1.3.0 in git_state: True"}], "notes": []}, {"eval_id": 2, "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5, "time_seconds": 121.4, "tokens": 29827, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "New version is 0.9.2 \u2014 dependency-only change is a PATCH", "passed": true, "evidence": "line 1: '0.9.2+1.g830daab'"}, {"text": "dependency.md line 1 is exactly 0.9.2+<count>.g<hash>", "passed": true, "evidence": "line 1: '0.9.2+1.g830daab'"}, {"text": "dependency.md snapshot shows libfoo at 1.4.0", "passed": true, "evidence": "1.4.0 present: True; soname libfoo.so.1 present: True"}, {"text": "Release note uncommitted (gitignored); CHANGELOG.md committed with 0.9.2 entry", "passed": true, "evidence": "release notes: ['release_note_0.9.2.md']; committed: False; 0.9.2 in CHANGELOG: True"}, {"text": "Release commit tagged v0.9.2", "passed": true, "evidence": "v0.9.2 in git_state: True"}], "notes": []}], "run_summary": {"with_skill": {"pass_rate": {"mean": 1.0, "stddev": 0.0, "min": 1.0, "max": 1.0}, "time_seconds": {"mean": 111.0, "stddev": 10.346, "min": 101.8, "max": 122.2}, "tokens": {"mean": 36010.3333, "stddev": 1595.4063, "min": 34811, "max": 37821}}, "without_skill": {"pass_rate": {"mean": 0.7333, "stddev": 0.4619, "min": 0.2, "max": 1.0}, "time_seconds": {"mean": 198.2667, "stddev": 78.8175, "min": 121.4, "max": 278.9}, "tokens": {"mean": 29585.3333, "stddev": 2612.8954, "min": 26860, "max": 32069}}, "delta": {"pass_rate": "+0.27", "time_seconds": "-87.3", "tokens": "+6425"}}, "notes": ["Eval 0 (bootstrap on a cross-compiled project) is the discriminating case: with_skill 5/5, baseline 1/5. The baseline invented a completely different mechanism (CMake git-describe + VERSION file) \u2014 no dependency snapshot, no target-mode record, nothing for future releases to diff against.", "Evals 1 and 2 baselines pass 5/5 because the committed dependency.md itself documents the convention \u2014 the file format is self-teaching, which is by design. The skill's value concentrates in bootstrap and in edge-case correctness.", "Hidden baseline deviation the loose assertions missed: baseline BUILD numbers used commits-since-tag (1.3.0+2.g..., 0.9.2+1.g...) instead of the spec's total commit count (with_skill: +3/+2). A stricter BUILD assertion would catch this in future iterations.", "Skill runs are ~2x faster with far lower variance (111s \u00b1 10 vs 198s \u00b1 79): the skill eliminates mechanism-design detours. Token cost is +6.4k for reading the skill.", "One baseline run (eval-1) crashed mid-output-save due to an API error; its outputs were salvaged from the repo state, grading unaffected."]}};
+
+    // ---- State ----
+    let feedbackMap = {};  // run_id -> feedback text
+    let currentIndex = 0;
+    let visitedRuns = new Set();
+
+    // ---- Init ----
+    async function init() {
+      // Load saved feedback from server — but only if this isn't a fresh
+      // iteration (indicated by previous_feedback being present). When
+      // previous feedback exists, the feedback.json on disk is stale from
+      // the prior iteration and should not pre-fill the textareas.
+      const hasPrevious = Object.keys(EMBEDDED_DATA.previous_feedback || {}).length > 0
+        || Object.keys(EMBEDDED_DATA.previous_outputs || {}).length > 0;
+      if (!hasPrevious) {
+        try {
+          const resp = await fetch("/api/feedback");
+          const data = await resp.json();
+          if (data.reviews) {
+            for (const r of data.reviews) feedbackMap[r.run_id] = r.feedback;
+          }
+        } catch { /* first run, no feedback yet */ }
+      }
+
+      document.getElementById("skill-name").textContent = EMBEDDED_DATA.skill_name;
+      showRun(0);
+
+      // Wire up feedback auto-save
+      const textarea = document.getElementById("feedback");
+      let saveTimeout = null;
+      textarea.addEventListener("input", () => {
+        clearTimeout(saveTimeout);
+        document.getElementById("feedback-status").textContent = "";
+        saveTimeout = setTimeout(() => saveCurrentFeedback(), 800);
+      });
+    }
+
+    // ---- Navigation ----
+    function navigate(delta) {
+      const newIndex = currentIndex + delta;
+      if (newIndex >= 0 && newIndex < EMBEDDED_DATA.runs.length) {
+        saveCurrentFeedback();
+        showRun(newIndex);
+      }
+    }
+
+    function updateNavButtons() {
+      document.getElementById("prev-btn").disabled = currentIndex === 0;
+      document.getElementById("next-btn").disabled =
+        currentIndex === EMBEDDED_DATA.runs.length - 1;
+    }
+
+    // ---- Show a run ----
+    function showRun(index) {
+      currentIndex = index;
+      const run = EMBEDDED_DATA.runs[index];
+
+      // Progress
+      document.getElementById("progress").textContent =
+        `${index + 1} of ${EMBEDDED_DATA.runs.length}`;
+
+      // Prompt
+      document.getElementById("prompt-text").textContent = run.prompt;
+
+      // Config badge
+      const badge = document.getElementById("config-badge");
+      const configMatch = run.id.match(/(with_skill|without_skill|new_skill|old_skill)/);
+      if (configMatch) {
+        const config = configMatch[1];
+        const isBaseline = config === "without_skill" || config === "old_skill";
+        badge.textContent = config.replace(/_/g, " ");
+        badge.className = "config-badge " + (isBaseline ? "config-baseline" : "config-primary");
+        badge.style.display = "inline-block";
+      } else {
+        badge.style.display = "none";
+      }
+
+      // Outputs
+      renderOutputs(run);
+
+      // Previous outputs
+      renderPrevOutputs(run);
+
+      // Grades
+      renderGrades(run);
+
+      // Previous feedback
+      const prevFb = (EMBEDDED_DATA.previous_feedback || {})[run.id];
+      const prevEl = document.getElementById("prev-feedback");
+      if (prevFb) {
+        document.getElementById("prev-feedback-text").textContent = prevFb;
+        prevEl.style.display = "block";
+      } else {
+        prevEl.style.display = "none";
+      }
+
+      // Feedback
+      document.getElementById("feedback").value = feedbackMap[run.id] || "";
+      document.getElementById("feedback-status").textContent = "";
+
+      updateNavButtons();
+
+      // Track visited runs and promote done button when all visited
+      visitedRuns.add(index);
+      const doneBtn = document.getElementById("done-btn");
+      if (visitedRuns.size >= EMBEDDED_DATA.runs.length) {
+        doneBtn.classList.add("ready");
+      }
+
+      // Scroll main content to top
+      document.querySelector(".main").scrollTop = 0;
+    }
+
+    // ---- Render outputs ----
+    function renderOutputs(run) {
+      const container = document.getElementById("outputs-body");
+      container.innerHTML = "";
+
+      const outputs = run.outputs || [];
+      if (outputs.length === 0) {
+        container.innerHTML = '<div class="empty-state">No output files</div>';
+        return;
+      }
+
+      for (const file of outputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        // Always show file header with download link
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const content = document.createElement("div");
+        content.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          content.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          content.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          content.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(content, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          content.appendChild(a);
+        } else if (file.type === "error") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          pre.style.color = "var(--red)";
+          content.appendChild(pre);
+        }
+
+        fileDiv.appendChild(content);
+        container.appendChild(fileDiv);
+      }
+    }
+
+    // ---- XLSX rendering via SheetJS ----
+    function renderXlsx(container, b64Data) {
+      try {
+        const raw = Uint8Array.from(atob(b64Data), c => c.charCodeAt(0));
+        const wb = XLSX.read(raw, { type: "array" });
+
+        for (let i = 0; i < wb.SheetNames.length; i++) {
+          const sheetName = wb.SheetNames[i];
+          const ws = wb.Sheets[sheetName];
+
+          if (wb.SheetNames.length > 1) {
+            const sheetLabel = document.createElement("div");
+            sheetLabel.style.cssText =
+              "font-weight:600; font-size:0.8rem; color:#b0aea5; margin-top:0.5rem; margin-bottom:0.25rem;";
+            sheetLabel.textContent = "Sheet: " + sheetName;
+            container.appendChild(sheetLabel);
+          }
+
+          const htmlStr = XLSX.utils.sheet_to_html(ws, { editable: false });
+          const wrapper = document.createElement("div");
+          wrapper.innerHTML = htmlStr;
+          container.appendChild(wrapper);
+        }
+      } catch (err) {
+        container.textContent = "Error rendering spreadsheet: " + err.message;
+      }
+    }
+
+    // ---- Grades ----
+    function renderGrades(run) {
+      const section = document.getElementById("grades-section");
+      const content = document.getElementById("grades-content");
+
+      if (!run.grading) {
+        section.style.display = "none";
+        return;
+      }
+
+      const grading = run.grading;
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("grades-arrow").classList.remove("open");
+
+      const summary = grading.summary || {};
+      const expectations = grading.expectations || [];
+
+      let html = '<div style="padding: 1rem;">';
+
+      // Summary line
+      const passRate = summary.pass_rate != null
+        ? Math.round(summary.pass_rate * 100) + "%"
+        : "?";
+      const badgeClass = summary.pass_rate >= 0.8 ? "grade-pass" : summary.pass_rate >= 0.5 ? "" : "grade-fail";
+      html += '<div class="grades-summary">';
+      html += '<span class="grade-badge ' + badgeClass + '">' + passRate + '</span>';
+      html += '<span>' + (summary.passed || 0) + ' passed, ' + (summary.failed || 0) + ' failed of ' + (summary.total || 0) + '</span>';
+      html += '</div>';
+
+      // Assertions list
+      html += '<ul class="assertion-list">';
+      for (const exp of expectations) {
+        const statusClass = exp.passed ? "pass" : "fail";
+        const statusIcon = exp.passed ? "\u2713" : "\u2717";
+        html += '<li class="assertion-item">';
+        html += '<span class="assertion-status ' + statusClass + '">' + statusIcon + '</span>';
+        html += '<span>' + escapeHtml(exp.text) + '</span>';
+        if (exp.evidence) {
+          html += '<div class="assertion-evidence">' + escapeHtml(exp.evidence) + '</div>';
+        }
+        html += '</li>';
+      }
+      html += '</ul>';
+
+      html += '</div>';
+      content.innerHTML = html;
+    }
+
+    function toggleGrades() {
+      const content = document.getElementById("grades-content");
+      const arrow = document.getElementById("grades-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Previous outputs (collapsible) ----
+    function renderPrevOutputs(run) {
+      const section = document.getElementById("prev-outputs-section");
+      const content = document.getElementById("prev-outputs-content");
+      const prevOutputs = (EMBEDDED_DATA.previous_outputs || {})[run.id];
+
+      if (!prevOutputs || prevOutputs.length === 0) {
+        section.style.display = "none";
+        return;
+      }
+
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("prev-outputs-arrow").classList.remove("open");
+
+      // Render the files into the content area
+      content.innerHTML = "";
+      const wrapper = document.createElement("div");
+      wrapper.style.padding = "1rem";
+
+      for (const file of prevOutputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const fc = document.createElement("div");
+        fc.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          fc.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          fc.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          fc.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(fc, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          fc.appendChild(a);
+        }
+
+        fileDiv.appendChild(fc);
+        wrapper.appendChild(fileDiv);
+      }
+
+      content.appendChild(wrapper);
+    }
+
+    function togglePrevOutputs() {
+      const content = document.getElementById("prev-outputs-content");
+      const arrow = document.getElementById("prev-outputs-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Feedback (saved to server -> feedback.json) ----
+    function saveCurrentFeedback() {
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // Build reviews array from map
+      const reviews = [];
+      for (const [run_id, feedback] of Object.entries(feedbackMap)) {
+        if (feedback.trim()) {
+          reviews.push({ run_id, feedback, timestamp: new Date().toISOString() });
+        }
+      }
+
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviews, status: "in_progress" }),
+      }).then(() => {
+        document.getElementById("feedback-status").textContent = "Saved";
+      }).catch(() => {
+        // Static mode or server unavailable — no-op on auto-save,
+        // feedback will be downloaded on final submit
+        document.getElementById("feedback-status").textContent = "Will download on submit";
+      });
+    }
+
+    // ---- Done ----
+    function showDoneDialog() {
+      // Save current textarea to feedbackMap (but don't POST yet)
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // POST once with status: complete — include ALL runs so the model
+      // can distinguish "no feedback" (looks good) from "not reviewed"
+      const reviews = [];
+      const ts = new Date().toISOString();
+      for (const r of EMBEDDED_DATA.runs) {
+        reviews.push({ run_id: r.id, feedback: feedbackMap[r.id] || "", timestamp: ts });
+      }
+      const payload = JSON.stringify({ reviews, status: "complete" }, null, 2);
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+      }).then(() => {
+        document.getElementById("done-overlay").classList.add("visible");
+      }).catch(() => {
+        // Server not available (static mode) — download as file
+        const blob = new Blob([payload], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "feedback.json";
+        a.click();
+        URL.revokeObjectURL(url);
+        document.getElementById("done-overlay").classList.add("visible");
+      });
+    }
+
+    function closeDoneDialog() {
+      // Reset status back to in_progress
+      saveCurrentFeedback();
+      document.getElementById("done-overlay").classList.remove("visible");
+    }
+
+    // ---- Toast ----
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("visible");
+      setTimeout(() => toast.classList.remove("visible"), 2000);
+    }
+
+    // ---- Keyboard nav ----
+    document.addEventListener("keydown", (e) => {
+      // Don't capture when typing in textarea
+      if (e.target.tagName === "TEXTAREA") return;
+
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        navigate(-1);
+      } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        navigate(1);
+      }
+    });
+
+    // ---- Util ----
+    function getDownloadUri(file) {
+      if (file.data_uri) return file.data_uri;
+      if (file.data_b64) return "data:application/octet-stream;base64," + file.data_b64;
+      if (file.type === "text") return "data:text/plain;charset=utf-8," + encodeURIComponent(file.content);
+      return "#";
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ---- View switching ----
+    function switchView(view) {
+      document.querySelectorAll(".view-tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
+      document.querySelector(`[onclick="switchView('${view}')"]`).classList.add("active");
+      document.getElementById("panel-" + view).classList.add("active");
+    }
+
+    // ---- Benchmark rendering ----
+    function renderBenchmark() {
+      const data = EMBEDDED_DATA.benchmark;
+      if (!data) return;
+
+      // Show the tabs
+      document.getElementById("view-tabs").style.display = "flex";
+
+      const container = document.getElementById("benchmark-content");
+      const summary = data.run_summary || {};
+      const metadata = data.metadata || {};
+      const notes = data.notes || [];
+
+      let html = "";
+
+      // Header
+      html += "<h2 style='font-family: Poppins, sans-serif; margin-bottom: 0.5rem;'>Benchmark Results</h2>";
+      html += "<p style='color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;'>";
+      if (metadata.skill_name) html += "<strong>" + escapeHtml(metadata.skill_name) + "</strong> &mdash; ";
+      if (metadata.timestamp) html += metadata.timestamp + " &mdash; ";
+      if (metadata.evals_run) html += "Evals: " + metadata.evals_run.join(", ") + " &mdash; ";
+      html += (metadata.runs_per_configuration || "?") + " runs per configuration";
+      html += "</p>";
+
+      // Summary table
+      html += '<table class="benchmark-table">';
+
+      function fmtStat(stat, pct) {
+        if (!stat) return "—";
+        const suffix = pct ? "%" : "";
+        const m = pct ? (stat.mean * 100).toFixed(0) : stat.mean.toFixed(1);
+        const s = pct ? (stat.stddev * 100).toFixed(0) : stat.stddev.toFixed(1);
+        return m + suffix + " ± " + s + suffix;
+      }
+
+      function deltaClass(val) {
+        if (!val) return "";
+        const n = parseFloat(val);
+        if (n > 0) return "benchmark-delta-positive";
+        if (n < 0) return "benchmark-delta-negative";
+        return "";
+      }
+
+      // Discover config names dynamically (everything except "delta")
+      const configs = Object.keys(summary).filter(k => k !== "delta");
+      const configA = configs[0] || "config_a";
+      const configB = configs[1] || "config_b";
+      const labelA = configA.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const labelB = configB.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const a = summary[configA] || {};
+      const b = summary[configB] || {};
+      const delta = summary.delta || {};
+
+      html += "<thead><tr><th>Metric</th><th>" + escapeHtml(labelA) + "</th><th>" + escapeHtml(labelB) + "</th><th>Delta</th></tr></thead>";
+      html += "<tbody>";
+
+      html += "<tr><td><strong>Pass Rate</strong></td>";
+      html += "<td>" + fmtStat(a.pass_rate, true) + "</td>";
+      html += "<td>" + fmtStat(b.pass_rate, true) + "</td>";
+      html += '<td class="' + deltaClass(delta.pass_rate) + '">' + (delta.pass_rate || "—") + "</td></tr>";
+
+      // Time (only show row if data exists)
+      if (a.time_seconds || b.time_seconds) {
+        html += "<tr><td><strong>Time (s)</strong></td>";
+        html += "<td>" + fmtStat(a.time_seconds, false) + "</td>";
+        html += "<td>" + fmtStat(b.time_seconds, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.time_seconds) + '">' + (delta.time_seconds ? delta.time_seconds + "s" : "—") + "</td></tr>";
+      }
+
+      // Tokens (only show row if data exists)
+      if (a.tokens || b.tokens) {
+        html += "<tr><td><strong>Tokens</strong></td>";
+        html += "<td>" + fmtStat(a.tokens, false) + "</td>";
+        html += "<td>" + fmtStat(b.tokens, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.tokens) + '">' + (delta.tokens || "—") + "</td></tr>";
+      }
+
+      html += "</tbody></table>";
+
+      // Per-eval breakdown (if runs data available)
+      const runs = data.runs || [];
+      if (runs.length > 0) {
+        const evalIds = [...new Set(runs.map(r => r.eval_id))].sort((a, b) => a - b);
+
+        html += "<h3 style='font-family: Poppins, sans-serif; margin-bottom: 0.75rem;'>Per-Eval Breakdown</h3>";
+
+        const hasTime = runs.some(r => r.result && r.result.time_seconds != null);
+        const hasErrors = runs.some(r => r.result && r.result.errors > 0);
+
+        for (const evalId of evalIds) {
+          const evalRuns = runs.filter(r => r.eval_id === evalId);
+          const evalName = evalRuns[0] && evalRuns[0].eval_name ? evalRuns[0].eval_name : "Eval " + evalId;
+
+          html += "<h4 style='font-family: Poppins, sans-serif; margin: 1rem 0 0.5rem; color: var(--text);'>" + escapeHtml(evalName) + "</h4>";
+          html += '<table class="benchmark-table">';
+          html += "<thead><tr><th>Config</th><th>Run</th><th>Pass Rate</th>";
+          if (hasTime) html += "<th>Time (s)</th>";
+          if (hasErrors) html += "<th>Crashes During Execution</th>";
+          html += "</tr></thead>";
+          html += "<tbody>";
+
+          // Group by config and render with average rows
+          const configGroups = [...new Set(evalRuns.map(r => r.configuration))];
+          for (let ci = 0; ci < configGroups.length; ci++) {
+            const config = configGroups[ci];
+            const configRuns = evalRuns.filter(r => r.configuration === config);
+            if (configRuns.length === 0) continue;
+
+            const rowClass = ci === 0 ? "benchmark-row-with" : "benchmark-row-without";
+            const configLabel = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
+            for (const run of configRuns) {
+              const r = run.result || {};
+              const prClass = r.pass_rate >= 0.8 ? "benchmark-delta-positive" : r.pass_rate < 0.5 ? "benchmark-delta-negative" : "";
+              html += '<tr class="' + rowClass + '">';
+              html += "<td>" + configLabel + "</td>";
+              html += "<td>" + run.run_number + "</td>";
+              html += '<td class="' + prClass + '">' + ((r.pass_rate || 0) * 100).toFixed(0) + "% (" + (r.passed || 0) + "/" + (r.total || 0) + ")</td>";
+              if (hasTime) html += "<td>" + (r.time_seconds != null ? r.time_seconds.toFixed(1) : "—") + "</td>";
+              if (hasErrors) html += "<td>" + (r.errors || 0) + "</td>";
+              html += "</tr>";
+            }
+
+            // Average row
+            const rates = configRuns.map(r => (r.result || {}).pass_rate || 0);
+            const avgRate = rates.reduce((a, b) => a + b, 0) / rates.length;
+            const avgPrClass = avgRate >= 0.8 ? "benchmark-delta-positive" : avgRate < 0.5 ? "benchmark-delta-negative" : "";
+            html += '<tr class="benchmark-row-avg ' + rowClass + '">';
+            html += "<td>" + configLabel + "</td>";
+            html += "<td>Avg</td>";
+            html += '<td class="' + avgPrClass + '">' + (avgRate * 100).toFixed(0) + "%</td>";
+            if (hasTime) {
+              const times = configRuns.map(r => (r.result || {}).time_seconds).filter(t => t != null);
+              html += "<td>" + (times.length ? (times.reduce((a, b) => a + b, 0) / times.length).toFixed(1) : "—") + "</td>";
+            }
+            if (hasErrors) html += "<td></td>";
+            html += "</tr>";
+          }
+          html += "</tbody></table>";
+
+          // Per-assertion detail for this eval
+          const runsWithExpectations = {};
+          for (const config of configGroups) {
+            runsWithExpectations[config] = evalRuns.filter(r => r.configuration === config && r.expectations && r.expectations.length > 0);
+          }
+          const hasAnyExpectations = Object.values(runsWithExpectations).some(runs => runs.length > 0);
+          if (hasAnyExpectations) {
+            // Collect all unique assertion texts across all configs
+            const allAssertions = [];
+            const seen = new Set();
+            for (const config of configGroups) {
+              for (const run of runsWithExpectations[config]) {
+                for (const exp of (run.expectations || [])) {
+                  if (!seen.has(exp.text)) {
+                    seen.add(exp.text);
+                    allAssertions.push(exp.text);
+                  }
+                }
+              }
+            }
+
+            html += '<table class="benchmark-table" style="margin-top: 0.5rem;">';
+            html += "<thead><tr><th>Assertion</th>";
+            for (const config of configGroups) {
+              const label = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+              html += "<th>" + escapeHtml(label) + "</th>";
+            }
+            html += "</tr></thead><tbody>";
+
+            for (const assertionText of allAssertions) {
+              html += "<tr><td>" + escapeHtml(assertionText) + "</td>";
+
+              for (const config of configGroups) {
+                html += "<td>";
+                for (const run of runsWithExpectations[config]) {
+                  const exp = (run.expectations || []).find(e => e.text === assertionText);
+                  if (exp) {
+                    const cls = exp.passed ? "benchmark-delta-positive" : "benchmark-delta-negative";
+                    const icon = exp.passed ? "\u2713" : "\u2717";
+                    html += '<span class="' + cls + '" title="Run ' + run.run_number + ': ' + escapeHtml(exp.evidence || "") + '">' + icon + "</span> ";
+                  } else {
+                    html += "— ";
+                  }
+                }
+                html += "</td>";
+              }
+              html += "</tr>";
+            }
+            html += "</tbody></table>";
+          }
+        }
+      }
+
+      // Notes
+      if (notes.length > 0) {
+        html += '<div class="benchmark-notes">';
+        html += "<h3>Analysis Notes</h3>";
+        html += "<ul>";
+        for (const note of notes) {
+          html += "<li>" + escapeHtml(note) + "</li>";
+        }
+        html += "</ul></div>";
+      }
+
+      container.innerHTML = html;
+    }
+
+    // ---- Start ----
+    init();
+    renderBenchmark();
+  </script>
+</body>
+</html>

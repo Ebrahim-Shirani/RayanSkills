@@ -1,0 +1,57 @@
+{
+  "skill_name": "linux-shared-library-release",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "This repo is our small C math library (libcalc). Set up proper versioned releases for it and cut the first release \u2014 the current version should be 0.1.0.",
+      "expected_output": "SONAME wiring added to the Makefile (SOVERSION 0), symlink chain, first ABI baseline committed under abi-baselines/0.1.0/, dependency.md + VERSIONING.md + tag v0.1.0, no bump invented.",
+      "files": [],
+      "assertions": [
+        "Built artifact is build-or-root libcalc.so.0.1.0 (real file) with DT_SONAME libcalc.so.0",
+        "Symlink chain libcalc.so -> libcalc.so.0 -> libcalc.so.0.1.0 exists after a build",
+        "Git tag v0.1.0 exists and the tagged commit contains dependency.md whose first line starts with 0.1.0+",
+        "abi-baselines/0.1.0/libcalc.so.0.abi is committed at the tagged commit",
+        "VERSIONING.md exists and states the SOVERSION-bump-only-on-ABI-break policy",
+        "Exactly one release tag exists (no bump was invented on bootstrap)"
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "We've added a new function to libtemp since the last release. Cut the next release.",
+      "expected_output": "ABI verdict COMPATIBLE_WITH_ADDITIONS vs baseline 1.4.2 -> version 1.5.0, SOVERSION stays 1, new baseline committed, CHANGELOG updated, tag v1.5.0.",
+      "files": [],
+      "assertions": [
+        "Git tag v1.5.0 exists (MINOR bump \u2014 not v1.4.3, not v2.0.0)",
+        "Makefile VERSION is 1.5.0 and the built library's DT_SONAME is still libtemp.so.1 (SOVERSION unchanged)",
+        "dependency.md first line starts with 1.5.0+ and records abi_verdict COMPATIBLE_WITH_ADDITIONS",
+        "abi-baselines/1.5.0/libtemp.so.1.abi is committed at the tagged commit",
+        "CHANGELOG.md gained a 1.5.0 entry mentioning temp_avg; no release_note_*.md file is committed"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I reworked the temperature conversion API in libtemp for better precision. Cut the next release.",
+      "expected_output": "abidiff proves BREAKING (temp_convert signature changed) -> version 2.0.0 with SOVERSION bumped to 2, SONAME libtemp.so.2, new baseline committed, tag v2.0.0.",
+      "files": [],
+      "assertions": [
+        "Git tag v2.0.0 exists (MAJOR bump)",
+        "Makefile VERSION is 2.0.0 and the built library's DT_SONAME is libtemp.so.2 (SOVERSION bumped with the ABI break)",
+        "The ABI verdict BREAKING is recorded in dependency.md and/or CHANGELOG.md",
+        "abi-baselines/2.0.0/libtemp.so.2.abi is committed at the tagged commit",
+        "The release artifacts show the break was surfaced (changed temp_convert signature named in changelog or release reasoning)"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Cut the next release of libjson.",
+      "expected_output": "State is partial (tag v0.3.0 + wired Makefile but no dependency.md and no abi-baselines/). The release must not invent an ABI verdict: either regenerate the baseline from the tagged build and run abidiff, or record the verdict as unverified/inconclusive. Fix-only change -> 0.3.1 if released.",
+      "files": [],
+      "assertions": [
+        "No ABI verdict is claimed without abidiff evidence: either a baseline was regenerated from the v0.3.0 tagged build and abidiff was run, or the verdict is recorded as unverified/inconclusive \u2014 never a bare COMPATIBLE claim",
+        "If a release was made, its version is 0.3.1 (PATCH for a fix-only change) with tag v0.3.1",
+        "dependency.md now exists with first line matching the released version, and abi-baselines/<released-version>/ is committed",
+        "The inconsistent starting state (tag present, manifest/baseline absent) was explicitly surfaced in the summary or release notes"
+      ]
+    }
+  ]
+}

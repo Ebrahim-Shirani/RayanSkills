@@ -1,10 +1,10 @@
 {
   "active_skill": {
-    "name": "cpp-exe-versioning",
-    "group": "linux-cpp-executables",
-    "skill_path": "skills/linux-cpp-executables/cpp-exe-versioning",
-    "docs_path": "docs/linux-cpp-executables/cpp-exe-versioning"
+    "name": "linux-shared-library-release",
+    "group": "linux-shared-libraries",
+    "skill_path": "skills/linux-shared-libraries/linux-shared-library-release",
+    "docs_path": "docs/linux-shared-libraries/linux-shared-library-release"
   },
-  "updated_at": "2026-07-19T21:00:00Z",
+  "updated_at": "2026-07-20T00:00:00Z",
   "_note": "Persists the active skill so context survives /clear. The agent reads this on startup and updates it whenever the active skill changes. Reset on exit. See CLAUDE.md §7."
 }

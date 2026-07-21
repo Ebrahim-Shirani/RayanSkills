@@ -28,7 +28,9 @@ are organized and the exact workflow for creating or modifying a skill.
         └── <skill>/
             ├── TASKS.md     # development task backlog (with statuses)
             ├── adr/         # Architecture Decision Records
-            └── specs/       # specifications (created when needed)
+            ├── specs/       # specifications (created when needed)
+            └── artifacts/   # test/benchmark/eval artifacts (not shipped,
+                             # not read at runtime; README.md explains each)
 ```
 
 ### Core rules
@@ -189,5 +191,15 @@ Contract:
 - Add a skill → `skills/<group>/<skill>/` (+ mirror `docs/<group>/<skill>/`).
 - Names: `kebab-case`, unique repo-wide, no spaces.
 - Ship only skill artifacts in `skills/`; keep ADRs/specs/tasks in `docs/`.
+- Test/benchmark/eval files that aren't part of the shipped skill go in
+  `docs/<group>/<skill>/artifacts/` with a README documenting each one, so
+  they are findable and safely removable later. Generated payloads there are
+  git-ignored; only the README and hand-authored eval definitions are
+  committed (see `.gitignore`). Skills must never reference
+  other skills (or `docs/`) in shipped files — runtime content is standalone.
+- Every skill directory ships a `README.md` for repository visitors (GitHub
+  renders it in place of the file listing): what the skill is for, when it
+  triggers, use cases, and non-use-cases. Keep the root README thin; per-skill
+  detail lives in these files. `SKILL.md` stays agent-facing.
 - Track work in `TASKS.md` with statuses `TODO/IN_PROGRESS/DONE/BLOCKED/CANCELLED`.
 - Persist the active skill in `.rayanskills/state.json`; survive `/clear`, reset on `exit`.

@@ -1,0 +1,22 @@
+[
+  {"query": "we're shipping libsensorfusion to the jetson next week, can you figure out what the next version number should be? we changed a couple of the filter functions since the last tag", "should_trigger": true},
+  {"query": "Set up proper release versioning for our CMake C++ library in ~/work/libgeo — right now the built .so has no soname and the repo has no tags", "should_trigger": true},
+  {"query": "did we break ABI since v3.2.0? I need to know if the next libcrypto-wrapper release is a major or a patch before I tag it", "should_trigger": true},
+  {"query": "cut a release of libipc", "should_trigger": true},
+  {"query": "our library repo has a dependency.md and an abi-baselines folder, someone before me set all that up. how do I make the next release?", "should_trigger": true},
+  {"query": "I removed two deprecated functions from libjson-utils. do I need to bump the SOVERSION? and what happens to the libjson-utils.so.3 symlink?", "should_trigger": true},
+  {"query": "boss wants release notes and a changelog for libmotor, we build with meson. please handle the version bump too and tag it", "should_trigger": true},
+  {"query": "a customer's app stopped loading our libfoo.so.5 after the last update — i think we shipped a breaking change without bumping the soname. help me fix the release process so this can't happen again", "should_trigger": true},
+  {"query": "generate an ABI baseline for today's release of libdsp, commit it and tag v2.1.0", "should_trigger": true},
+  {"query": "we cross-compile libnav for aarch64 with a poky sysroot — how should versioning and releases work for the .so we ship in the image?", "should_trigger": true},
+  {"query": "why does my program say 'version GLIBC_2.34 not found' when I run it on the old server?", "should_trigger": false},
+  {"query": "check whether this patch to our vector struct breaks ABI compatibility — we're not releasing yet, just reviewing the merge request", "should_trigger": false},
+  {"query": "cut a release of our CLI tool, it's a C++ executable built with cmake, needs a version bump and release notes", "should_trigger": false},
+  {"query": "how do I split libz-ng into a -dev and a runtime debian package with proper dependencies?", "should_trigger": false},
+  {"query": "write a linker version script so only the public symbols of libacme get exported, everything else hidden", "should_trigger": false},
+  {"query": "our python package needs a version bump and a changelog entry before we push to pypi", "should_trigger": false},
+  {"query": "what's the difference between the soname and the library filename? just trying to understand how linux linking works", "should_trigger": false},
+  {"query": "ldd on the target shows 'libopencv_core.so.4.5 => not found' for my binary, fix the library path setup", "should_trigger": false},
+  {"query": "bump the versionCode in our android app's gradle file and tag the repo for the play store release", "should_trigger": false},
+  {"query": "prepare the release of the new firmware image for the stm32 board, version 3.3", "should_trigger": false}
+]

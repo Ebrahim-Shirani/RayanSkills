@@ -23,3 +23,16 @@ node_modules/
 
 # Stale git-repo backup left by sandbox (safe to delete on your machine)
 .git.trash*/
+
+# Test/benchmark/eval artifact payloads: kept locally under
+# docs/<group>/<skill>/artifacts/, never committed (owner policy 2026-07-21).
+# Each artifacts/README.md IS committed — it documents what exists locally
+# and how to regenerate it.
+docs/*/*/artifacts/*
+!docs/*/*/artifacts/README.md
+# Hand-authored eval definitions are inputs (needed to reproduce runs), not outputs:
+!docs/*/*/artifacts/evals.json
+!docs/*/*/artifacts/description-trigger-eval.json
+
+# Local sandbox/session litter
+.claude/

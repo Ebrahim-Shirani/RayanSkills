@@ -113,11 +113,11 @@ could misbehave or fail to load against the new library. Typical breakers:
 Backward-compatible changes (no SOVERSION bump) include: adding a **new** exported function,
 appending to an opaque/handle-based API, bug fixes that don't change signatures or layouts.
 
-> **Scope boundary.** *Deciding* whether a given change is ABI-incompatible — especially via
-> automated tools like `abidiff` or `abi-compliance-checker` — is **out of scope for this
-> skill** and belongs to the ABI-management/checking sibling skill. This skill wires the
-> mechanism (VERSION/SOVERSION/SONAME/symlinks) and states the policy; it relies on the
-> maintainer (or that sibling skill) for the compatibility judgement.
+> **Where the decision comes from.** *Deciding* whether a given change is ABI-incompatible
+> is not done by eyeballing this list — it is done in phase 3 of the release workflow, by
+> diffing the built artifact against the committed baseline (`scripts/abi_baseline.sh check`).
+> This file explains the mechanism (VERSION/SOVERSION/SONAME/symlinks) and the policy; the
+> verdict that drives the SOVERSION decision always comes from that type-aware diff.
 
 ## Note on non-Linux platforms
 

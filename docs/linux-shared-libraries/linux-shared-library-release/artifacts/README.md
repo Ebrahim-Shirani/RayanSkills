@@ -54,4 +54,16 @@ python -m scripts.run_loop \
 ```
 
 The 2026-07-20 description revision was done manually against this eval set
-(reasoning in `../TASKS.md` T005); the automated run remains open work.
+(reasoning in `../TASKS.md` T005).
+
+**Automated run (2026-07-21/22).** The loop was run end-to-end from Claude Code
+with `--model claude-opus-4-8 --max-iterations 5`. The evaluation phase ran, but
+the description-improvement `claude -p` call failed reproducibly mid-run
+(`exit 1`, empty stderr) — not usage credits (the exact call succeeds 4/4
+standalone with the real prompt), most consistent with short-window rate
+throttling after the eval phase's burst of calls; lowering concurrency did not
+help. No completed run produced a `best_description`, and across all partial
+iterations the current (shipped) description was never beaten on held-out test
+score, so no description change was applied. See `../TASKS.md` T005 for the full
+diagnosis and decision. The retry-wrapper/run logs were ephemeral scratchpad
+files (git-ignored per the policy above) and are not archived here.

@@ -73,10 +73,38 @@ Statuses: `TODO` · `IN_PROGRESS` · `DONE` · `BLOCKED` · `CANCELLED`.
 
 ## T005 — Description triggering optimization
 
-- **Status:** IN_PROGRESS (2026-07-20)
+- **Status:** DONE (2026-07-22)
 - **Method:** the automated skill-creator loop (`run_loop.py`) requires a
-  logged-in `claude` CLI, unavailable in the Cowork sandbox. Done instead:
-  trigger eval set authored and stored in
+  logged-in `claude` CLI, unavailable in the Cowork sandbox. First pass
+  (2026-07-20): trigger eval set authored and stored in
   `artifacts/description-trigger-eval.json`; manual description revision
-  against it. Remaining: run the automated loop from Claude Code (command
-  recorded in `artifacts/README.md`) to validate/refine.
+  against it.
+- **Automated run from Claude Code (2026-07-21/22):** the loop was executed
+  end-to-end against the owner-reviewed eval set (`description-trigger-eval.json`,
+  20 queries, stratified 12-train / 8-test split), model `claude-opus-4-8`,
+  `--max-iterations 5`. The **evaluation** phase ran successfully every time;
+  the **description-improvement** phase (`improve_description.py`'s `claude -p`
+  call) failed reproducibly mid-run (`exit 1`, empty stderr), so no completed
+  run produced a `best_description`/`results.json`.
+- **Diagnosis (recorded so it isn't re-litigated):**
+  - It is **not** usage credits/quota — credits are enabled, and the exact
+    improve call replayed **standalone succeeds 4/4** with the real 19 KB prompt.
+  - The improve call fails **only mid-run**, as the ~21st–61st `claude -p`
+    invocation fired within a couple of minutes. Lowering eval concurrency
+    10→4 did **not** help (per-iteration call *volume* is unchanged). The
+    signature — works cold, fails after a volley, independent of credits —
+    is most consistent with **short-window request/token rate throttling**.
+  - The untried lever, if revisited, is to cut per-iteration call volume
+    (`--runs-per-query 1`, `--num-workers 2`) to keep the volley small.
+- **Outcome / decision:** across **all** partial iterations the **original
+  (current) description was never beaten** on held-out test score — every
+  auto-proposed rewrite tied or regressed (recall stayed low across variants).
+  Therefore **no change is applied** to `SKILL.md`; the 2026-07-20 manually
+  revised description stands. T005 is closed on the owner's instruction
+  (2026-07-22): the automated loop was run from Claude Code, validated that the
+  shipped description is not beaten by the optimizer, and surfaced an
+  environmental blocker on the improve step. No best/final train/test score is
+  recorded because no run completed; the representative partial signal was
+  train recall ~0–17 % and the original description holding the top test score.
+  Run scaffolding (retry wrapper, logs) was ephemeral in the session scratchpad
+  and is git-ignored per artifacts policy.
